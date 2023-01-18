@@ -6,7 +6,7 @@ function getGalleryElement() {
 function createImageElement({ preview, original, description }) {
   return `
     <div class="gallery__item">
-    <a class="gallery__link" href="${original}">
+    <a class="gallery__link" href="${original}" onclick="return false">
     <img
       class="gallery__image"
       src="${preview}"
@@ -20,21 +20,37 @@ function createImageElement({ preview, original, description }) {
 function onGalleryImageClick(container) {
   return container.addEventListener("click", handelGalleryImageClick);
 }
+
 function handelGalleryImageClick(evt) {
   const isImageElement = evt.target.classList.contains("gallery__image");
   if (!isImageElement) {
     return;
   }
-  console.log(evt.target);
-  const instance = basicLightbox.create(`
+  const instance = basicLightbox.create(
+    `
     <img src="${evt.target.dataset.source}" width="800" height="600">
-`);
+`,
+    {
+      onShow: (instance) => {
+        document.addEventListener("keydown", handleTargetClickEsc(instance));
+      },
+
+      onClose: (instance) => {
+        document.removeEventListener("keydown", handleTargetClickEsc(instance));
+      },
+    }
+  );
 
   instance.show();
 }
 
+const handleTargetClickEsc = (instance) => (evt) => {
+  if (evt.code === "Escape") {
+    instance.close();
+  }
+};
+
 function rander() {
-  console.log(galleryItems);
   const container = getGalleryElement();
   const elementsToRander = galleryItems.map(createImageElement).join("");
   container.insertAdjacentHTML("beforeend", elementsToRander);
